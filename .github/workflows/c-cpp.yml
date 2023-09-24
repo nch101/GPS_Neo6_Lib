@@ -1,0 +1,17 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  unit_test:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build test cases
+      run: make build
+    - name: Run test cases
+      run: make check
