@@ -1,0 +1,78 @@
+/**
+  *******************************************************************************
+  * @file    Neo6M_GPSNeo6M.h
+  * @author  Huy Nguyen
+  * @brief   NMEA sentence parser for GPS Neo 6M header file
+  *******************************************************************************
+  * @attention
+  *
+  * MIT License
+  * 
+  * Copyright (c) 2023 Nguyễn Công Huy
+  * 
+  * Permission is hereby granted, free of charge, to any person obtaining a copy
+  * of this software and associated documentation files (the "Software"), to deal
+  * in the Software without restriction, including without limitation the rights
+  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  * copies of the Software, and to permit persons to whom the Software is
+  * furnished to do so, subject to the following conditions:
+  * 
+  * The above copyright notice and this permission notice shall be included in all
+  * copies or substantial portions of the Software.
+  * 
+  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  * SOFTWARE.
+  * 
+  *
+  ******************************************************************************
+*/
+
+/* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef NEO6M_GPSNEO6M_H
+#define NEO6M_GPSNEO6M_H
+
+/* Includes ------------------------------------------------------------------*/
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+/* Exported defines ----------------------------------------------------------*/
+
+/**
+ * @brief Enumeration structure that contains the two results of a command
+*/
+typedef enum __attribute__((packed))
+{
+    NEO6M_NOK,                  /* Not OK status */
+    NEO6M_OK                    /* OK status */
+} CheckStatus_t;
+
+
+/**
+ * @brief Enumeration structure that contains the two results of a parsing process
+*/
+typedef enum __attribute__((packed))
+{
+    PARSE_FAIL,                 /* Fail status */
+    PARSE_SUCC                  /* Success status */
+} ParseStatus_t;
+
+/**
+ * @brief Data structure that contains all of the information about VTG (Course over ground and Ground speed) data 
+*/
+typedef struct
+{
+    float cogt;                 /* Course over ground (true) */
+    float sknots;               /* Speed over ground (knots) */
+    float skph;                 /* Speed over ground (kilometers/hour) */
+} GPVTG_Info_t;
+
+extern CheckStatus_t NEO6M_CheckHeaderMsg(char const* const rawMessage, char const* const expectedHeader);
+extern ParseStatus_t NEO6M_ParseGPVTG(char const* const rawMessage, GPVTG_Info_t* pGPVTG_Info);
+
+#endif /* NEO6M_GPSNEO6M_H */
