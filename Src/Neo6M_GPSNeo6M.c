@@ -37,64 +37,42 @@
 
 /* Private define ------------------------------------------------------------*/
 #define MAX_RAW_STRING_LENGTH               100U    /* Max raw string length */
-#define MAX_HEADER_SIZE                     8       /* Max header size */
-#define MAX_GPVTG_FIELD                     9       /* Max VTG data field */
-#define MAX_GPVTG_LENGTH                    15      /* Max VTG data length */
+#define MAX_FIELD                           20      /* Max data field */
+#define MAX_LENGTH                          12      /* Max data length */
+
+/* Private variables ---------------------------------------------------------*/
 
 /* Private functions ---------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
 
 /**
   * @brief  This function validates the header in the raw message, matching the expected header.
-  * @param  rawMessage          Pointer to string read by UART
+  * @param  headerMsg           Pointer to header from buffer
   * @param  expectedHeader      Expected header string
   * @retval NEO6M_OK if headers match, NEO6M_NOK if they don't
   */
-CheckStatus_t NEO6M_CheckHeaderMsg(char const* const rawMessage, char const* const expectedHeader)
+static CheckStatus_t NEO6M_CheckHeaderMsg(char const* const headerMsg, char const* const expectedHeader)
 {
-    char header[MAX_HEADER_SIZE] = {};
-    uint8_t index;
-
-    for (index = 0U; index < MAX_HEADER_SIZE; index++)
-    {
-        /* Check if field has ended */
-        if (rawMessage[index] == ',')
-        {
-            header[index] = '\0';
-            break;
-        }
-
-        /* Store character indexth into header */
-        header[index] = rawMessage[index];
-    }
-
-    return (strcmp(expectedHeader, &header[1]) == 0 ? NEO6M_OK : NEO6M_NOK);
+    return (strcmp(expectedHeader, &headerMsg[1]) == 0 ? NEO6M_OK : NEO6M_NOK);
 }
 
 /**
-  * @brief  Sets the priority of an interrupt.
+  * @brief  This function parses raw message, then put it into buffer.
+  * @param  buffer              Pointer to buffer
   * @param  rawMessage          Pointer to string read by UART
-  * @param  pGPVTG_Info         Pointer to GPVTG_Info_t struct
   * @retval PARSE_SUCC if the parsing process goes ok, PARSE_FAIL if it doesn't
   */
-ParseStatus_t NEO6M_ParseGPVTG(char const* const rawMessage, GPVTG_Info_t* pGPVTG_Info)
+static ParseStatus_t NEO6M_ParseGPSMsg(char buffer[MAX_FIELD][MAX_LENGTH], char const* const rawMessage)
 {
-    char buffer[MAX_GPVTG_FIELD][MAX_GPVTG_LENGTH] = {};
-    uint8_t index, fieldIndex, dataIndex;
-    ParseStatus_t status;
+    uint8_t index;
+    uint8_t fieldIndex      = 0U;
+    uint8_t dataIndex       = 0U;
 
-    /* Set field index and data index to 0 */
-    fieldIndex  = 0U;
-    dataIndex   = 0U;
-    status      = PARSE_FAIL;
-
-    for (index = 7U; index < MAX_RAW_STRING_LENGTH; index++)
+    for (index = 0U; index < MAX_RAW_STRING_LENGTH; index++)
     {
         if (rawMessage[index] == '\n')
         {
             /* Break the loop */
-            break;
+            return PARSE_SUCC;
         }
 
         /* Check if field has ended */
@@ -105,7 +83,7 @@ ParseStatus_t NEO6M_ParseGPVTG(char const* const rawMessage, GPVTG_Info_t* pGPVT
             /* Increase field no */
             fieldIndex++;
             /* Reset data index to 0 */
-            dataIndex = 0;
+            dataIndex = 0U;
         }
         else
         {
@@ -116,20 +94,52 @@ ParseStatus_t NEO6M_ParseGPVTG(char const* const rawMessage, GPVTG_Info_t* pGPVT
         }
     }
 
-    if (buffer[8][0] == 'A')
-    {
-        pGPVTG_Info->cogt   = strtof((char *)&buffer[0], NULL);
-        pGPVTG_Info->sknots = strtof((char *)&buffer[4], NULL);
-        pGPVTG_Info->skph   = strtof((char *)&buffer[6], NULL);
+    return PARSE_FAIL;
+}
 
-        status = PARSE_SUCC;
+/**
+  * @brief  Function that makes the parsing of the GPVTG string.
+  * @param  buffer              Pointer to buffer
+  * @param  pGPVTG_Info         Pointer to GPVTG_Info_t struct
+  * @retval PARSE_SUCC if the parsing process goes ok, PARSE_FAIL if it doesn't
+  */
+static ParseStatus_t NEO6M_ParseGPVTG(char buffer[MAX_FIELD][MAX_LENGTH], GPVTG_Info_t* pGPVTG_Info)
+{
+    if (buffer[9][0] == 'A')
+    {
+        pGPVTG_Info->cogt   = strtof((char *)&buffer[1], NULL);
+        pGPVTG_Info->sknots = strtof((char *)&buffer[5], NULL);
+        pGPVTG_Info->skph   = strtof((char *)&buffer[7], NULL);
+
+        return PARSE_SUCC;
     }
     else
     {
-        pGPVTG_Info->cogt   = 0;
-        pGPVTG_Info->sknots = 0;
-        pGPVTG_Info->skph   = 0;
+        memset(pGPVTG_Info, 0, sizeof(GPVTG_Info_t));
+
+        return PARSE_FAIL;
+    }
+}
+
+/* Exported functions --------------------------------------------------------*/
+
+/**
+  * @brief  GPS Neo 6M Api function.
+  * @param  rawMessage          Pointer to string read by UART
+  * @param  pGPS_Neo6M          Pointer to void struct
+  * @retval None
+  */
+void NEO6M_GPSNeo6_Api(char const* const rawMessage, void *pGPS_Neo6M)
+{
+    char buffer[MAX_FIELD][MAX_LENGTH] = {0};
+
+    if (NEO6M_ParseGPSMsg(buffer, rawMessage) == PARSE_FAIL)
+    {
+        return;
     }
 
-    return status;
+    if (NEO6M_CheckHeaderMsg(buffer[0], "GPVTG") == NEO6M_OK)
+    {
+        (void)NEO6M_ParseGPVTG(buffer, (GPVTG_Info_t*)pGPS_Neo6M);
+    }
 }

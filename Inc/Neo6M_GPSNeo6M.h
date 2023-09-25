@@ -72,7 +72,6 @@ typedef struct
     float skph;                 /* Speed over ground (kilometers/hour) */
 } GPVTG_Info_t;
 
-extern CheckStatus_t NEO6M_CheckHeaderMsg(char const* const rawMessage, char const* const expectedHeader);
-extern ParseStatus_t NEO6M_ParseGPVTG(char const* const rawMessage, GPVTG_Info_t* pGPVTG_Info);
+extern void NEO6M_GPSNeo6_Api(char const* const rawMessage, void *pGPS_Neo6M);
 
 #endif /* NEO6M_GPSNEO6M_H */

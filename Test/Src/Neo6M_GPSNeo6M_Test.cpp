@@ -4,123 +4,86 @@ extern "C" {
     #include "Neo6M_GPSNeo6M.h"
 }
 
-TEST(NEO6M_CheckHeaderMsg, Testcase_001)
+TEST(NEO6M_ParseGPVTGMsg, Testcase_001)
 {
-    char            str[] = "$GPVTG,,,,,,,,,N*30\r\n";
-    CheckStatus_t   status;
+    char            str[] = "$GPVTG,184.34,T,,M,1.936,N,3.586,K,A*32\r\n";
+    GPVTG_Info_t    pGPVTG_Info = {0};
 
-    status = NEO6M_CheckHeaderMsg(str, "GPVTG");
+    NEO6M_GPSNeo6_Api(str, &pGPVTG_Info);
 
-    EXPECT_EQ(status, NEO6M_OK);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.cogt, 184.34);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.sknots, 1.936);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.skph, 3.586);
 }
 
-TEST(NEO6M_CheckHeaderMsg, Testcase_002)
-{
-    char            str[] = "$GPV,,,,,,,,,N*30\r\n";
-    CheckStatus_t   status;
-
-    status = NEO6M_CheckHeaderMsg(str, "GPVTG");
-
-    EXPECT_EQ(status, NEO6M_NOK);
-}
-
-TEST(NEO6M_CheckHeaderMsg, Testcase_003)
-{
-    char            str[] = "$GPVTGCA,,,,,,,,,N*30\r\n";
-    CheckStatus_t   status;
-
-    status = NEO6M_CheckHeaderMsg(str, "GPVTG");
-
-    EXPECT_EQ(status, NEO6M_NOK);
-}
-
-TEST(NEO6M_CheckHeaderMsg, Testcase_004)
-{
-    char            str[] = "$GPGSV,4,4,14,47,10,093,42,50,44,103,35*73\r\n";
-    CheckStatus_t   status;
-
-    status = NEO6M_CheckHeaderMsg(str, "GPVTG");
-
-    EXPECT_EQ(status, NEO6M_NOK);
-}
-
-TEST(NEO6M_CheckHeaderMsg, Testcase_005)
-{
-    char            str[] = "$GPGSV,4,4,14,47,10,093,42,50,44,103,35*73\r\n";
-    CheckStatus_t   status;
-
-    status = NEO6M_CheckHeaderMsg(str, "GPVTG");
-
-    EXPECT_EQ(status, NEO6M_NOK);
-}
-
-TEST(NEO6M_ParseGPVTG, Testcase_001)
-{
-    char            str[] = "$GPVTG,,,,,,,,,N*30\r\n";
-    GPVTG_Info_t    pGPVTG_Info;
-    ParseStatus_t   status;
-
-    status = NEO6M_ParseGPVTG(str, &pGPVTG_Info);
-
-    EXPECT_FLOAT_EQ(pGPVTG_Info.cogt, 0);
-    EXPECT_FLOAT_EQ(pGPVTG_Info.sknots, 0);
-    EXPECT_FLOAT_EQ(pGPVTG_Info.skph, 0);
-    EXPECT_EQ(status, PARSE_FAIL);
-}
-
-TEST(NEO6M_ParseGPVTG, Testcase_002)
+TEST(NEO6M_ParseGPVTGMsg, Testcase_002)
 {
     char            str[] = "$GPVTG,,T,,M,2.181,N,4.039,K,A*27\r\n";
-    GPVTG_Info_t    pGPVTG_Info;
-    ParseStatus_t   status;
+    GPVTG_Info_t    pGPVTG_Info = {0};
 
-    status = NEO6M_ParseGPVTG(str, &pGPVTG_Info);
+    NEO6M_GPSNeo6_Api(str, &pGPVTG_Info);
 
-    EXPECT_FLOAT_EQ(pGPVTG_Info.cogt, 0);
-    EXPECT_FLOAT_EQ(pGPVTG_Info.sknots, 2.181);
-    EXPECT_FLOAT_EQ(pGPVTG_Info.skph, 4.039);
-    EXPECT_EQ(status, PARSE_SUCC);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.cogt, 0);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.sknots, 2.181);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.skph, 4.039);
 }
 
-
-TEST(NEO6M_ParseGPVTG, Testcase_003)
+TEST(NEO6M_ParseGPVTGMsg, Testcase_003)
 {
-    char            str[] = "$GPVTG,,T,,M,0.034,N,0.062,K,A*20\r\n";
-    GPVTG_Info_t    pGPVTG_Info;
-    ParseStatus_t   status;
+    char            str[] = "$GPVTG,,T,,M,2.181,N,4.039,K,D*27\r\n";
+    GPVTG_Info_t    pGPVTG_Info = {0};
 
-    status = NEO6M_ParseGPVTG(str, &pGPVTG_Info);
+    NEO6M_GPSNeo6_Api(str, &pGPVTG_Info);
 
-    EXPECT_FLOAT_EQ(pGPVTG_Info.cogt, 0);
-    EXPECT_FLOAT_EQ(pGPVTG_Info.sknots, 0.034);
-    EXPECT_FLOAT_EQ(pGPVTG_Info.skph, 0.062);
-    EXPECT_EQ(status, PARSE_SUCC);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.cogt, 0);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.sknots, 0);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.skph, 0);
 }
 
-TEST(NEO6M_ParseGPVTG, Testcase_004)
+TEST(NEO6M_ParseGPVTGMsg, Testcase_004)
 {
-    char            str[] = "$GPVTG,270.17,T,,M,3.065,N,5.677,K,A*3D\r\n";
-    GPVTG_Info_t    pGPVTG_Info;
-    ParseStatus_t   status;
+    char            str[] = "$GPVTG,,,,,,,,,N*30\r\n";
+    GPVTG_Info_t    pGPVTG_Info = {0};
 
-    status = NEO6M_ParseGPVTG(str, &pGPVTG_Info);
+    NEO6M_GPSNeo6_Api(str, &pGPVTG_Info);
 
-    EXPECT_FLOAT_EQ(pGPVTG_Info.cogt, 270.17);
-    EXPECT_FLOAT_EQ(pGPVTG_Info.sknots, 3.065);
-    EXPECT_FLOAT_EQ(pGPVTG_Info.skph, 5.677);
-    EXPECT_EQ(status, PARSE_SUCC);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.cogt, 0);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.sknots, 0);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.skph, 0);
 }
 
-TEST(NEO6M_ParseGPVTG, Testcase_005)
+TEST(NEO6M_ParseGPVTGMsg, Testcase_005)
 {
-    char            str[] = "$GPVTG,270.17,T,,M,3.065,N,5.677,K,D*3D\r\n";
-    GPVTG_Info_t    pGPVTG_Info;
-    ParseStatus_t   status;
+    char            str[] = "$GPGSV,2,1,05,04,,,44,08,,,41,09,,,37,21,,,26*7C\r\n";
+    GPVTG_Info_t    pGPVTG_Info = {0};
 
-    status = NEO6M_ParseGPVTG(str, &pGPVTG_Info);
+    NEO6M_GPSNeo6_Api(str, &pGPVTG_Info);
 
-    EXPECT_FLOAT_EQ(pGPVTG_Info.cogt, 0);
-    EXPECT_FLOAT_EQ(pGPVTG_Info.sknots, 0);
-    EXPECT_FLOAT_EQ(pGPVTG_Info.skph, 0);
-    EXPECT_EQ(status, PARSE_FAIL);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.cogt, 0);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.sknots, 0);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.skph, 0);
+}
+
+TEST(NEO6M_ParseGPVTGMsg, Testcase_006)
+{
+    char            str[] = "$GPGSA,A,1,,,,,,,,,,,,,99.99,99.99,99.99*30\r\n";
+    GPVTG_Info_t    pGPVTG_Info = {0};
+
+    NEO6M_GPSNeo6_Api(str, &pGPVTG_Info);
+
+    ASSERT_FLOAT_EQ(pGPVTG_Info.cogt, 0);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.sknots, 0);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.skph, 0);
+}
+
+TEST(NEO6M_ParseGPVTGMsg, Testcase_007)
+{
+    char            str[] = "$GPGGA,14212844.00,1041218.121662124145593,N,11210639.46323519,E,1,06,3.70,21.0,M,-2.6,M,,*7F23321313\r\n";
+    GPVTG_Info_t    pGPVTG_Info = {0};
+
+    NEO6M_GPSNeo6_Api(str, &pGPVTG_Info);
+
+    ASSERT_FLOAT_EQ(pGPVTG_Info.cogt, 0);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.sknots, 0);
+    ASSERT_FLOAT_EQ(pGPVTG_Info.skph, 0);
 }
