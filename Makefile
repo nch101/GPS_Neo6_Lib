@@ -18,14 +18,25 @@ INCLUDES = \
 -ITest/Inc
 
 # Libraries
+ifeq ($(OS), Windows_NT)
+	LIBS_PATH = Test/Lib/Windows
+else ifeq ($(shell uname), Linux)
+	LIBS_PATH = Test/Lib/Linux
+endif
+
 LIBS = -lgtest -lgtest_main
-LIBS_PATH = Test/Lib
 
 # Compiler and flags
 CC = gcc
 CXX = g++
 
 CFLAGS = -Wall -g -O0
+
+ifeq ($(OS), Windows_NT)
+	RMDIR = rmdir /s /q
+else ifeq ($(shell uname), Linux)
+	RMDIR = rm -rf
+endif
 
 # List of objects
 OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
@@ -61,4 +72,4 @@ check:
 	./$(BUILD_DIR)/$(TARGET) --gtest_color=yes
 
 clean: 
-	@rmdir /s /q $(BUILD_DIR)
+	@$(RMDIR) $(BUILD_DIR)
