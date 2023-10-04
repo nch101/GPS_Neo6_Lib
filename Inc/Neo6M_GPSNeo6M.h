@@ -38,7 +38,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 
 /* Exported defines ----------------------------------------------------------*/
@@ -51,7 +50,6 @@ typedef enum __attribute__((packed))
     NEO6M_NOK,                  /* Not OK status */
     NEO6M_OK                    /* OK status */
 } CheckStatus_t;
-
 
 /**
  * @brief Enumeration structure that contains the two results of a parsing process
@@ -67,9 +65,9 @@ typedef enum __attribute__((packed))
 */
 typedef struct
 {
-    float cogt;                 /* Course over ground (true) */
-    float sknots;               /* Speed over ground (knots) */
-    float skph;                 /* Speed over ground (kilometers/hour) */
+    uint32_t cogt;              /* Course over ground (true) */
+    uint32_t sknots;            /* Speed over ground (knots) */
+    uint32_t skph;              /* Speed over ground (kilometers/hour) */
 } GPVTG_Info_t;
 
 extern void NEO6M_GPSNeo6_Api(char const* const rawMessage, void *pGPS_Neo6M);

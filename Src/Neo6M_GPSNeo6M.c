@@ -45,6 +45,36 @@
 /* Private functions ---------------------------------------------------------*/
 
 /**
+  * @brief  This function converts a number as a string to a number.
+  * @param  str                 Pointer to string
+  * @retval Unsigned integer
+  */
+static uint32_t NEO6M_ConvertStr2Uint32(char const* const str)
+{
+    uint32_t number = 0;
+    uint8_t  str2int;
+    uint8_t  index;
+
+    for (index = 0; index < strlen(str); index++)
+    {
+        if (str[index] == '.')
+        {
+            continue;
+        }
+
+        if ((str[index] < '0') || (str[index] > '9'))
+        {
+            return 0; 
+        }
+
+        str2int = (uint8_t)(str[index] - '0');
+        number  = number*10 + str2int;
+    }
+
+    return number;
+}
+
+/**
   * @brief  This function validates the header in the raw message, matching the expected header.
   * @param  headerMsg           Pointer to header from buffer
   * @param  expectedHeader      Expected header string
@@ -107,9 +137,9 @@ static ParseStatus_t NEO6M_ParseGPVTG(char buffer[MAX_FIELD][MAX_LENGTH], GPVTG_
 {
     if (buffer[9][0] == 'A')
     {
-        pGPVTG_Info->cogt   = strtof((char *)&buffer[1], NULL);
-        pGPVTG_Info->sknots = strtof((char *)&buffer[5], NULL);
-        pGPVTG_Info->skph   = strtof((char *)&buffer[7], NULL);
+        pGPVTG_Info->cogt   = NEO6M_ConvertStr2Uint32((char *)&buffer[1]);
+        pGPVTG_Info->sknots = NEO6M_ConvertStr2Uint32((char *)&buffer[5]);
+        pGPVTG_Info->skph   = NEO6M_ConvertStr2Uint32((char *)&buffer[7]);
 
         return PARSE_SUCC;
     }

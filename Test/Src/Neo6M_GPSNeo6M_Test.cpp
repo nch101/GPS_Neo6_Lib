@@ -11,9 +11,9 @@ TEST(NEO6M_ParseGPVTGMsg, Testcase_001)
 
     NEO6M_GPSNeo6_Api(str, &pGPVTG_Info);
 
-    ASSERT_FLOAT_EQ(pGPVTG_Info.cogt, 184.34);
-    ASSERT_FLOAT_EQ(pGPVTG_Info.sknots, 1.936);
-    ASSERT_FLOAT_EQ(pGPVTG_Info.skph, 3.586);
+    ASSERT_EQ(pGPVTG_Info.cogt, 18434U);
+    ASSERT_EQ(pGPVTG_Info.sknots, 1936U);
+    ASSERT_EQ(pGPVTG_Info.skph, 3586U);
 }
 
 TEST(NEO6M_ParseGPVTGMsg, Testcase_002)
@@ -23,9 +23,9 @@ TEST(NEO6M_ParseGPVTGMsg, Testcase_002)
 
     NEO6M_GPSNeo6_Api(str, &pGPVTG_Info);
 
-    ASSERT_FLOAT_EQ(pGPVTG_Info.cogt, 0);
-    ASSERT_FLOAT_EQ(pGPVTG_Info.sknots, 2.181);
-    ASSERT_FLOAT_EQ(pGPVTG_Info.skph, 4.039);
+    ASSERT_EQ(pGPVTG_Info.cogt, 0U);
+    ASSERT_EQ(pGPVTG_Info.sknots, 2181U);
+    ASSERT_EQ(pGPVTG_Info.skph, 4039U);
 }
 
 TEST(NEO6M_ParseGPVTGMsg, Testcase_003)
@@ -35,9 +35,9 @@ TEST(NEO6M_ParseGPVTGMsg, Testcase_003)
 
     NEO6M_GPSNeo6_Api(str, &pGPVTG_Info);
 
-    ASSERT_FLOAT_EQ(pGPVTG_Info.cogt, 0);
-    ASSERT_FLOAT_EQ(pGPVTG_Info.sknots, 0);
-    ASSERT_FLOAT_EQ(pGPVTG_Info.skph, 0);
+    ASSERT_EQ(pGPVTG_Info.cogt, 0U);
+    ASSERT_EQ(pGPVTG_Info.sknots, 0U);
+    ASSERT_EQ(pGPVTG_Info.skph, 0U);
 }
 
 TEST(NEO6M_ParseGPVTGMsg, Testcase_004)
@@ -47,9 +47,9 @@ TEST(NEO6M_ParseGPVTGMsg, Testcase_004)
 
     NEO6M_GPSNeo6_Api(str, &pGPVTG_Info);
 
-    ASSERT_FLOAT_EQ(pGPVTG_Info.cogt, 0);
-    ASSERT_FLOAT_EQ(pGPVTG_Info.sknots, 0);
-    ASSERT_FLOAT_EQ(pGPVTG_Info.skph, 0);
+    ASSERT_EQ(pGPVTG_Info.cogt, 0U);
+    ASSERT_EQ(pGPVTG_Info.sknots, 0U);
+    ASSERT_EQ(pGPVTG_Info.skph, 0U);
 }
 
 TEST(NEO6M_ParseGPVTGMsg, Testcase_005)
@@ -59,9 +59,9 @@ TEST(NEO6M_ParseGPVTGMsg, Testcase_005)
 
     NEO6M_GPSNeo6_Api(str, &pGPVTG_Info);
 
-    ASSERT_FLOAT_EQ(pGPVTG_Info.cogt, 0);
-    ASSERT_FLOAT_EQ(pGPVTG_Info.sknots, 0);
-    ASSERT_FLOAT_EQ(pGPVTG_Info.skph, 0);
+    ASSERT_EQ(pGPVTG_Info.cogt, 0U);
+    ASSERT_EQ(pGPVTG_Info.sknots, 0U);
+    ASSERT_EQ(pGPVTG_Info.skph, 0U);
 }
 
 TEST(NEO6M_ParseGPVTGMsg, Testcase_006)
@@ -71,9 +71,9 @@ TEST(NEO6M_ParseGPVTGMsg, Testcase_006)
 
     NEO6M_GPSNeo6_Api(str, &pGPVTG_Info);
 
-    ASSERT_FLOAT_EQ(pGPVTG_Info.cogt, 0);
-    ASSERT_FLOAT_EQ(pGPVTG_Info.sknots, 0);
-    ASSERT_FLOAT_EQ(pGPVTG_Info.skph, 0);
+    ASSERT_EQ(pGPVTG_Info.cogt, 0U);
+    ASSERT_EQ(pGPVTG_Info.sknots, 0U);
+    ASSERT_EQ(pGPVTG_Info.skph, 0U);
 }
 
 TEST(NEO6M_ParseGPVTGMsg, Testcase_007)
@@ -83,7 +83,7 @@ TEST(NEO6M_ParseGPVTGMsg, Testcase_007)
 
     NEO6M_GPSNeo6_Api(str, &pGPVTG_Info);
 
-    ASSERT_FLOAT_EQ(pGPVTG_Info.cogt, 0);
-    ASSERT_FLOAT_EQ(pGPVTG_Info.sknots, 0);
-    ASSERT_FLOAT_EQ(pGPVTG_Info.skph, 0);
+    ASSERT_EQ(pGPVTG_Info.cogt, 0U);
+    ASSERT_EQ(pGPVTG_Info.sknots, 0U);
+    ASSERT_EQ(pGPVTG_Info.skph, 0U);
 }
