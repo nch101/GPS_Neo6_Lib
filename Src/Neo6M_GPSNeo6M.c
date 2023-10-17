@@ -64,11 +64,13 @@ static uint32_t NEO6M_ConvertStr2Uint32(char const* const str)
 
         if ((str[index] < '0') || (str[index] > '9'))
         {
-            return 0; 
+            /* Not a number. Set number to 0 and break the loop */
+            number = 0;
+            break;
         }
 
-        str2int = (uint8_t)(str[index] - '0');
-        number  = number*10 + str2int;
+        str2int = (uint8_t)str[index] - (uint8_t)'0';
+        number  = (number*10U) + str2int;
     }
 
     return number;
@@ -82,7 +84,7 @@ static uint32_t NEO6M_ConvertStr2Uint32(char const* const str)
   */
 static CheckStatus_t NEO6M_CheckHeaderMsg(char const* const headerMsg, char const* const expectedHeader)
 {
-    return (strcmp(expectedHeader, &headerMsg[1]) == 0 ? NEO6M_OK : NEO6M_NOK);
+    return ((strcmp(expectedHeader, &headerMsg[1]) == 0) ? NEO6M_OK : NEO6M_NOK);
 }
 
 /**
@@ -97,12 +99,15 @@ static ParseStatus_t NEO6M_ParseGPSMsg(char buffer[MAX_FIELD][MAX_LENGTH], char 
     uint8_t fieldIndex      = 0U;
     uint8_t dataIndex       = 0U;
 
+    ParseStatus_t status    = PARSE_FAIL;
+
     for (index = 0U; index < MAX_RAW_STRING_LENGTH; index++)
     {
         if (rawMessage[index] == '\n')
         {
             /* Break the loop */
-            return PARSE_SUCC;
+            status = PARSE_SUCC;
+            break;
         }
 
         /* Check if field has ended */
@@ -124,7 +129,7 @@ static ParseStatus_t NEO6M_ParseGPSMsg(char buffer[MAX_FIELD][MAX_LENGTH], char 
         }
     }
 
-    return PARSE_FAIL;
+    return status;
 }
 
 /**
@@ -135,20 +140,20 @@ static ParseStatus_t NEO6M_ParseGPSMsg(char buffer[MAX_FIELD][MAX_LENGTH], char 
   */
 static ParseStatus_t NEO6M_ParseGPVTG(char buffer[MAX_FIELD][MAX_LENGTH], GPVTG_Info_t* pGPVTG_Info)
 {
+    ParseStatus_t status    = PARSE_FAIL;
+
+    (void)memset(pGPVTG_Info, 0, sizeof(GPVTG_Info_t));
+
     if (buffer[9][0] == 'A')
     {
         pGPVTG_Info->cogt   = NEO6M_ConvertStr2Uint32((char *)&buffer[1]);
         pGPVTG_Info->sknots = NEO6M_ConvertStr2Uint32((char *)&buffer[5]);
         pGPVTG_Info->skph   = NEO6M_ConvertStr2Uint32((char *)&buffer[7]);
 
-        return PARSE_SUCC;
+        status = PARSE_SUCC;
     }
-    else
-    {
-        memset(pGPVTG_Info, 0, sizeof(GPVTG_Info_t));
 
-        return PARSE_FAIL;
-    }
+    return status;
 }
 
 /* Exported functions --------------------------------------------------------*/
@@ -157,19 +162,22 @@ static ParseStatus_t NEO6M_ParseGPVTG(char buffer[MAX_FIELD][MAX_LENGTH], GPVTG_
   * @brief  GPS Neo 6M Api function.
   * @param  rawMessage          Pointer to string read by UART
   * @param  pGPS_Neo6M          Pointer to void struct
-  * @retval None
+  * @retval NEO6M_OK if OK, NEO6M_NOK if not
   */
-void NEO6M_GPSNeo6_Api(char const* const rawMessage, void *pGPS_Neo6M)
+CheckStatus_t NEO6M_GPSNeo6_Api(char const* const rawMessage, void *pGPS_Neo6M)
 {
     char buffer[MAX_FIELD][MAX_LENGTH] = {0};
 
-    if (NEO6M_ParseGPSMsg(buffer, rawMessage) == PARSE_FAIL)
+    CheckStatus_t status = NEO6M_NOK;
+
+    if (NEO6M_ParseGPSMsg(buffer, rawMessage) != PARSE_FAIL)
     {
-        return;
+        if (NEO6M_CheckHeaderMsg(buffer[0], "GPVTG") == NEO6M_OK)
+        {
+            (void)NEO6M_ParseGPVTG(buffer, (GPVTG_Info_t*)pGPS_Neo6M);
+            status = NEO6M_OK;
+        }
     }
 
-    if (NEO6M_CheckHeaderMsg(buffer[0], "GPVTG") == NEO6M_OK)
-    {
-        (void)NEO6M_ParseGPVTG(buffer, (GPVTG_Info_t*)pGPS_Neo6M);
-    }
+    return status;
 }
