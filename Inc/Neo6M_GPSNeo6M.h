@@ -61,6 +61,36 @@ typedef enum __attribute__((packed))
 } ParseStatus_t;
 
 /**
+ * @brief Data structure that contains all of the information about time data
+*/
+typedef struct
+{
+    uint8_t hr;                 /* Hour */
+    uint8_t min;                /* Minute */
+    uint8_t sec;                /* Second */
+} Time_Info_t;
+
+/**
+ * @brief Data structure that contains all of the information about date data
+*/
+typedef struct
+{
+    uint8_t year;               /* Year */
+    uint8_t month;              /* Month */
+    uint8_t day;                /* Day */
+} Date_Info_t;
+
+/**
+ * @brief Data structure that contains all of the information about coordinate data
+*/
+typedef struct
+{
+    uint32_t fracDegs;          /* Fraction of degrees */
+    uint8_t degs;               /* Degrees */
+    char pole;                  /* Pole */
+} Coord_Info_t;
+
+/**
  * @brief Data structure that contains all of the information about VTG (Course over ground and Ground speed) data 
 */
 typedef struct
@@ -69,6 +99,17 @@ typedef struct
     uint32_t sknots;            /* Speed over ground (knots) */
     uint32_t skph;              /* Speed over ground (kilometers/hour) */
 } GPVTG_Info_t;
+
+/**
+ * @brief Data structure that contains all of the information about RMC (Recommended Minimum) data 
+*/
+typedef struct
+{
+    Time_Info_t time;           /* UTC time */
+    Date_Info_t date;           /* Date in day, month, year format, */
+    Coord_Info_t lat;           /* Latitude */
+    Coord_Info_t lng;           /* Longitude */
+} GPRMC_Info_t;
 
 extern CheckStatus_t NEO6M_GPSNeo6_Api(char const* const rawMessage, void *pGPS_Neo6M);
 
