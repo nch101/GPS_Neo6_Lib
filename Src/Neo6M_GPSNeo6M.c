@@ -83,36 +83,36 @@ static uint32_t NEO6M_ConvertStr2Uint32(char const* const str)
   */
 static Time_Info_t NEO6M_ConvertStr2TimeFormat(char const* const str)
 {
-    Time_Info_t time = (Time_Info_t){0, 0, 0};
+    Time_Info_t curr_time = (Time_Info_t){0, 0, 0};
     uint8_t  str2uint8;
     uint8_t  index;
 
-    for (index = 0; index < 6; index++)
+    for (index = 0; index < 6U; index++)
     {
         if ((str[index] < '0') || (str[index] > '9'))
         {
             /* Not a number. Set time to max value and break the loop */
-            time = (Time_Info_t){255, 255, 255};
+            curr_time = (Time_Info_t){255, 255, 255};
             break;
         }
 
         str2uint8 = (uint8_t)str[index] - (uint8_t)'0';
 
-        if (index < 2)
+        if (index < 2U)
         {
-            time.hr = (time.hr*10U) + str2uint8;
+            curr_time.hr = (curr_time.hr*10U) + str2uint8;
         }
-        else if (index < 4)
+        else if (index < 4U)
         {
-            time.min = (time.min*10U) + str2uint8;
+            curr_time.min = (curr_time.min*10U) + str2uint8;
         }
         else
         {
-            time.sec = (time.sec*10U) + str2uint8;
+            curr_time.sec = (curr_time.sec*10U) + str2uint8;
         }
     }
 
-    return time;
+    return curr_time;
 }
 
 /**
@@ -126,7 +126,7 @@ static Date_Info_t NEO6M_ConvertStr2DateFormat(char const* const str)
     uint8_t  str2uint8;
     uint8_t  index;
 
-    for (index = 0; index < 6; index++)
+    for (index = 0; index < 6U; index++)
     {
         if ((str[index] < '0') || (str[index] > '9'))
         {
@@ -137,11 +137,11 @@ static Date_Info_t NEO6M_ConvertStr2DateFormat(char const* const str)
 
         str2uint8 = (uint8_t)str[index] - (uint8_t)'0';
 
-        if (index < 2)
+        if (index < 2U)
         {
             date.day = (date.day * 10U) + str2uint8;
         }
-        else if (index < 4)
+        else if (index < 4U)
         {
             date.month = (date.month * 10U) + str2uint8;
         }
@@ -161,7 +161,7 @@ static Date_Info_t NEO6M_ConvertStr2DateFormat(char const* const str)
   */
 static Coord_Info_t NEO6M_ConvertStr2Coord(char const* const str, char const* const pole)
 {
-    Coord_Info_t coord = (Coord_Info_t){0, 0, 0};
+    Coord_Info_t coord = (Coord_Info_t){0, 0, 'I'};
     uint32_t fracDegs  = 0;
     uint8_t  str2uint8;
     uint8_t  index;
@@ -198,7 +198,7 @@ static Coord_Info_t NEO6M_ConvertStr2Coord(char const* const str, char const* co
             
             if ((pole[0] == 'N') || (pole[0] == 'S'))
             {
-                if (index > 1)
+                if (index > 1U)
                 {
                     fracDegs = (fracDegs * 10U) + str2uint8;
                 }
@@ -209,7 +209,7 @@ static Coord_Info_t NEO6M_ConvertStr2Coord(char const* const str, char const* co
             }
             else if ((pole[0] == 'E') || (pole[0] == 'W'))
             {
-                if (index > 2)
+                if (index > 2U)
                 {
                     fracDegs = (fracDegs * 10U) + str2uint8;
                 }
@@ -217,6 +217,10 @@ static Coord_Info_t NEO6M_ConvertStr2Coord(char const* const str, char const* co
                 {
                     coord.degs = (coord.degs * 10U) + str2uint8;
                 }
+            }
+            else
+            {
+                /* Do nothing */
             }
         }
 
@@ -319,7 +323,7 @@ static ParseStatus_t NEO6M_ParseGPRMC(char buffer[MAX_FIELD][MAX_LENGTH], GPRMC_
 {
     ParseStatus_t status    = PARSE_FAIL;
 
-    (void)memset(pGPRMC_Info, 0U, sizeof(GPRMC_Info_t));
+    (void)memset(pGPRMC_Info, 0, sizeof(GPRMC_Info_t));
 
     if (buffer[2][0] == 'A')
     {
@@ -357,6 +361,10 @@ CheckStatus_t NEO6M_GPSNeo6_Api(char const* const rawMessage, void *pGPS_Neo6M)
         else if (NEO6M_CheckHeaderMsg(buffer[0], "GPRMC") == NEO6M_OK)
         {
             status = ((NEO6M_ParseGPRMC(buffer, (GPRMC_Info_t*)pGPS_Neo6M) == PARSE_SUCC) ? NEO6M_OK : NEO6M_NOK);
+        }
+        else
+        {
+            /* Do nothing */
         }
     }
 
