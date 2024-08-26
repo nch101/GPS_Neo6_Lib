@@ -37,6 +37,7 @@
 #define NEO6M_GPSNEO6M_H
 
 /* Includes ------------------------------------------------------------------*/
+#include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -59,6 +60,15 @@ typedef enum __attribute__((packed))
     PARSE_FAIL,                 /* Fail status */
     PARSE_SUCC                  /* Success status */
 } ParseStatus_t;
+
+/**
+ * @brief Data structure that contains node information
+*/
+typedef struct Node
+{
+    char*         data;
+    struct Node*  next;
+} Node_t;
 
 /**
  * @brief Data structure that contains all of the information about time data

@@ -37,17 +37,107 @@
 
 /* Private define ------------------------------------------------------------*/
 #define MAX_RAW_STRING_LENGTH               100U    /* Max raw string length */
-#define MAX_FIELD                           20      /* Max data field */
-#define MAX_LENGTH                          12      /* Max data length */
 
 /* Private variables ---------------------------------------------------------*/
+static Node_t *g_pHead          = NULL;         /* Head of linked list */
+static uint8_t g_fieldNum;                      /* Current number of data field */
 
 /* Private functions ---------------------------------------------------------*/
 
 /**
-  * @brief  This function converts a number as a string to a number.
-  * @param  str                 Pointer to string
-  * @retval Unsigned integer
+  * @brief      This function inserts a string into a node.
+  * @param[in]  str                 Pointer to string
+  * @param[in]  dataLen             Length of string
+  * @retval     NEO6M_OK if ok, NEO6M_NOK if not
+  */
+static CheckStatus_t NEO6M_InsertToNode(char const* const str, const uint8_t dataLen)
+{
+    Node_t *dataNode;
+    CheckStatus_t status    = NEO6M_NOK;
+
+    /* Allocate memory for a dataNode */
+    dataNode = (Node_t *) malloc(sizeof(Node_t));
+
+    /* Check if dataNode is allocated success or not */
+    if (dataNode != NULL)
+    {
+        /* Allocate memory for buffer */
+        dataNode->data  = (char *) calloc(sizeof(char), dataLen + 1U);
+
+        /* Check if data is allocated success or not */
+        if (dataNode->data != NULL)
+        {
+            /* Copy data from str to buffer */
+            (void) strncpy(dataNode->data, str, dataLen);
+
+            /* Point new node to old node */
+            dataNode->next = g_pHead;
+
+            /* Point head to new node */
+            g_pHead = dataNode;
+
+            /* Increase data field index */
+            g_fieldNum++;
+
+            /* Update status to OK */
+            status  = NEO6M_OK;
+        }
+        else
+        {
+            /* Do nothing */
+        }
+    }
+    else
+    {
+        /* Do nothing */
+    }
+
+    return status;
+}
+
+/**
+  * @brief      This function gets data of node from list by index.
+  * @param[in]  nodeIndex           Index of node
+  * @retval     Pointer to data node
+  */
+static char* NEO6M_GetDataByIndex(const uint8_t nodeIndex)
+{
+    Node_t *dataNode        = g_pHead;
+    uint8_t index;
+
+    for (index = 0; index < (g_fieldNum - 1U - nodeIndex); index++)
+    {
+        dataNode = dataNode->next;
+    }
+
+    return dataNode->data;
+}
+
+/**
+  * @brief      This function frees node in list.
+  * @retval     None
+  */
+static void NEO6M_FreeList(void)
+{
+    Node_t *pCurNode;
+
+    while (g_pHead != NULL)
+    {
+        pCurNode = g_pHead;
+
+        g_pHead    = g_pHead->next;
+
+        free(pCurNode->data);
+        free(pCurNode);
+    }
+
+    g_fieldNum = 0U;
+}
+
+/**
+  * @brief      This function converts a number as a string to a number.
+  * @param[in]  str                 Pointer to string
+  * @retval     Unsigned integer
   */
 static uint32_t NEO6M_ConvertStr2Uint32(char const* const str)
 {
@@ -69,17 +159,17 @@ static uint32_t NEO6M_ConvertStr2Uint32(char const* const str)
             break;
         }
 
-        str2int = (uint8_t)str[index] - (uint8_t)'0';
-        number  = (number*10U) + str2int;
+        str2int = (uint8_t) str[index] - (uint8_t) '0';
+        number  = (number * 10U) + str2int;
     }
 
     return number;
 }
 
 /**
-  * @brief  This function converts a time as a string to time format.
-  * @param  str                 Pointer to string
-  * @retval Time_Info_t
+  * @brief      This function converts a time as a string to time format.
+  * @param[in]  str                 Pointer to string
+  * @retval     Time_Info_t
   */
 static Time_Info_t NEO6M_ConvertStr2TimeFormat(char const* const str)
 {
@@ -100,15 +190,15 @@ static Time_Info_t NEO6M_ConvertStr2TimeFormat(char const* const str)
 
         if (index < 2U)
         {
-            curr_time.hr = (curr_time.hr*10U) + str2uint8;
+            curr_time.hr = (curr_time.hr * 10U) + str2uint8;
         }
         else if (index < 4U)
         {
-            curr_time.min = (curr_time.min*10U) + str2uint8;
+            curr_time.min = (curr_time.min * 10U) + str2uint8;
         }
         else
         {
-            curr_time.sec = (curr_time.sec*10U) + str2uint8;
+            curr_time.sec = (curr_time.sec * 10U) + str2uint8;
         }
     }
 
@@ -116,9 +206,9 @@ static Time_Info_t NEO6M_ConvertStr2TimeFormat(char const* const str)
 }
 
 /**
-  * @brief  This function converts a date as a string to date format.
-  * @param  str                 Pointer to string
-  * @retval Date_Info_t
+  * @brief      This function converts a date as a string to date format.
+  * @param[in]  str                 Pointer to string
+  * @retval     Date_Info_t
   */
 static Date_Info_t NEO6M_ConvertStr2DateFormat(char const* const str)
 {
@@ -155,9 +245,10 @@ static Date_Info_t NEO6M_ConvertStr2DateFormat(char const* const str)
 }
 
 /**
-  * @brief  This function converts a date as a string to coordinate format.
-  * @param  str                 Pointer to string
-  * @retval Date_Info_t
+  * @brief      This function converts a date as a string to coordinate format.
+  * @param[in]  str                 Pointer to string
+  * @param[in]  pole                Pointer to string
+  * @retval     Date_Info_t
   */
 static Coord_Info_t NEO6M_ConvertStr2Coord(char const* const str, char const* const pole)
 {
@@ -234,10 +325,10 @@ static Coord_Info_t NEO6M_ConvertStr2Coord(char const* const str, char const* co
 }
 
 /**
-  * @brief  This function validates the header in the raw message, matching the expected header.
-  * @param  headerMsg           Pointer to header from buffer
-  * @param  expectedHeader      Expected header string
-  * @retval NEO6M_OK if headers match, NEO6M_NOK if they don't
+  * @brief      This function validates the header in the raw message, matching the expected header.
+  * @param[in]  headerMsg           Pointer to header from buffer
+  * @param[in]  expectedHeader      Expected header string
+  * @retval     NEO6M_OK if headers match, NEO6M_NOK if they don't
   */
 static CheckStatus_t NEO6M_CheckHeaderMsg(char const* const headerMsg, char const* const expectedHeader)
 {
@@ -245,44 +336,43 @@ static CheckStatus_t NEO6M_CheckHeaderMsg(char const* const headerMsg, char cons
 }
 
 /**
-  * @brief  This function parses raw message, then put it into buffer.
-  * @param  buffer              Pointer to buffer
-  * @param  rawMessage          Pointer to string read by UART
-  * @retval PARSE_SUCC if the parsing process goes ok, PARSE_FAIL if it doesn't
+  * @brief      This function parses raw message, then put it into buffer.
+  * @param[in]  rawMessage          Pointer to string read by UART
+  * @retval     PARSE_SUCC if the parsing process goes ok, PARSE_FAIL if it doesn't
   */
-static ParseStatus_t NEO6M_ParseGPSMsg(char buffer[MAX_FIELD][MAX_LENGTH], char const* const rawMessage)
+static ParseStatus_t NEO6M_ParseGPSMsg(char const* const rawMessage)
 {
-    uint8_t index;
-    uint8_t fieldIndex      = 0U;
-    uint8_t dataIndex       = 0U;
-
     ParseStatus_t status    = PARSE_FAIL;
+
+    uint8_t index;
+    uint8_t beginDataIndex  = 0U;
+    uint8_t dataLength      = 0U;
 
     for (index = 0U; index < MAX_RAW_STRING_LENGTH; index++)
     {
-        if (rawMessage[index] == '\n')
+        if (rawMessage[index] == '\r')
         {
+            /* Insert raw message block to buffer */
+            status = ((NEO6M_InsertToNode(&rawMessage[beginDataIndex], dataLength) == NEO6M_OK) ? PARSE_SUCC : PARSE_FAIL);
+
             /* Break the loop */
-            status = PARSE_SUCC;
             break;
         }
-
-        /* Check if field has ended */
-        if (rawMessage[index] == ',')
+        else if (rawMessage[index] == ',')
         {
-            buffer[fieldIndex][dataIndex] = '\0';
+            /* Insert raw message block to buffer */
+            status = ((NEO6M_InsertToNode(&rawMessage[beginDataIndex], dataLength) == NEO6M_OK) ? PARSE_SUCC : PARSE_FAIL);
 
-            /* Increase field no */
-            fieldIndex++;
-            /* Reset data index to 0 */
-            dataIndex = 0U;
+            /* Reset data length to 0 */
+            dataLength = 0U;
+
+            /* Reset begin index of data */
+            beginDataIndex = index + 1U;
         }
         else
         {
-            buffer[fieldIndex][dataIndex] = rawMessage[index];
-
-            /* Increase data index */
-            dataIndex++;
+            /* Increase data length */
+            dataLength++;
         }
     }
 
@@ -290,22 +380,21 @@ static ParseStatus_t NEO6M_ParseGPSMsg(char buffer[MAX_FIELD][MAX_LENGTH], char 
 }
 
 /**
-  * @brief  Function that makes the parsing of the GPVTG string.
-  * @param  buffer              Pointer to buffer
-  * @param  pGPVTG_Info         Pointer to GPVTG_Info_t struct
-  * @retval PARSE_SUCC if the parsing process goes ok, PARSE_FAIL if it doesn't
+  * @brief      Function that makes the parsing of the GPVTG string.
+  * @param[out] pGPVTG_Info         Pointer to GPVTG_Info_t struct
+  * @retval     PARSE_SUCC if the parsing process goes ok, PARSE_FAIL if it doesn't
   */
-static ParseStatus_t NEO6M_ParseGPVTG(char buffer[MAX_FIELD][MAX_LENGTH], GPVTG_Info_t* pGPVTG_Info)
+static ParseStatus_t NEO6M_ParseGPVTG(GPVTG_Info_t* pGPVTG_Info)
 {
     ParseStatus_t status    = PARSE_FAIL;
 
-    (void)memset(pGPVTG_Info, 0, sizeof(GPVTG_Info_t));
+    (void) memset(pGPVTG_Info, 0, sizeof(GPVTG_Info_t));
 
-    if (buffer[9][0] == 'A')
+    if (NEO6M_GetDataByIndex(9)[0] == 'A')
     {
-        pGPVTG_Info->cogt   = NEO6M_ConvertStr2Uint32((char *)&buffer[1]);
-        pGPVTG_Info->sknots = NEO6M_ConvertStr2Uint32((char *)&buffer[5]);
-        pGPVTG_Info->skph   = NEO6M_ConvertStr2Uint32((char *)&buffer[7]);
+        pGPVTG_Info->cogt   = NEO6M_ConvertStr2Uint32(NEO6M_GetDataByIndex(1));
+        pGPVTG_Info->sknots = NEO6M_ConvertStr2Uint32(NEO6M_GetDataByIndex(5));
+        pGPVTG_Info->skph   = NEO6M_ConvertStr2Uint32(NEO6M_GetDataByIndex(7));
 
         status = PARSE_SUCC;
     }
@@ -314,23 +403,22 @@ static ParseStatus_t NEO6M_ParseGPVTG(char buffer[MAX_FIELD][MAX_LENGTH], GPVTG_
 }
 
 /**
-  * @brief  Function that makes the parsing of the GPRMC string.
-  * @param  buffer              Pointer to buffer
-  * @param  pGPRMC_Info         Pointer to GPRMC_Info_t struct
-  * @retval PARSE_SUCC if the parsing process goes ok, PARSE_FAIL if it doesn't
+  * @brief      Function that makes the parsing of the GPRMC string.
+  * @param[out] pGPRMC_Info         Pointer to GPRMC_Info_t struct
+  * @retval     PARSE_SUCC if the parsing process goes ok, PARSE_FAIL if it doesn't
   */
-static ParseStatus_t NEO6M_ParseGPRMC(char buffer[MAX_FIELD][MAX_LENGTH], GPRMC_Info_t* pGPRMC_Info)
+static ParseStatus_t NEO6M_ParseGPRMC(GPRMC_Info_t* pGPRMC_Info)
 {
     ParseStatus_t status    = PARSE_FAIL;
 
     (void)memset(pGPRMC_Info, 0, sizeof(GPRMC_Info_t));
 
-    if (buffer[2][0] == 'A')
+    if (NEO6M_GetDataByIndex(2)[0] == 'A')
     {
-        pGPRMC_Info->time   = NEO6M_ConvertStr2TimeFormat((char *)&buffer[1]);
-        pGPRMC_Info->date   = NEO6M_ConvertStr2DateFormat((char *)&buffer[9]);
-        pGPRMC_Info->lat    = NEO6M_ConvertStr2Coord((char *)&buffer[3], (char *)&buffer[4]);
-        pGPRMC_Info->lng    = NEO6M_ConvertStr2Coord((char *)&buffer[5], (char *)&buffer[6]);
+        pGPRMC_Info->time   = NEO6M_ConvertStr2TimeFormat(NEO6M_GetDataByIndex(1));
+        pGPRMC_Info->date   = NEO6M_ConvertStr2DateFormat(NEO6M_GetDataByIndex(9));
+        pGPRMC_Info->lat    = NEO6M_ConvertStr2Coord(NEO6M_GetDataByIndex(3), NEO6M_GetDataByIndex(4));
+        pGPRMC_Info->lng    = NEO6M_ConvertStr2Coord(NEO6M_GetDataByIndex(5), NEO6M_GetDataByIndex(6));
 
         status = PARSE_SUCC;
     }
@@ -341,32 +429,33 @@ static ParseStatus_t NEO6M_ParseGPRMC(char buffer[MAX_FIELD][MAX_LENGTH], GPRMC_
 /* Exported functions --------------------------------------------------------*/
 
 /**
-  * @brief  GPS Neo 6M Api function.
-  * @param  rawMessage          Pointer to string read by UART
-  * @param  pGPS_Neo6M          Pointer to void struct
-  * @retval NEO6M_OK if OK, NEO6M_NOK if not
+  * @brief      GPS Neo 6M Api function.
+  * @param[in]  rawMessage          Pointer to string read by UART
+  * @param[out] pGPS_Neo6M          Pointer to void struct
+  * @retval     NEO6M_OK if OK, NEO6M_NOK if not
   */
 CheckStatus_t NEO6M_GPSNeo6_Api(char const* const rawMessage, void *pGPS_Neo6M)
 {
-    char buffer[MAX_FIELD][MAX_LENGTH] = {0};
-
     CheckStatus_t status = NEO6M_NOK;
 
-    if (NEO6M_ParseGPSMsg(buffer, rawMessage) != PARSE_FAIL)
+    if (NEO6M_ParseGPSMsg(rawMessage) != PARSE_FAIL)
     {
-        if (NEO6M_CheckHeaderMsg(buffer[0], "GPVTG") == NEO6M_OK)
+        if (NEO6M_CheckHeaderMsg(NEO6M_GetDataByIndex(0), "GPVTG") == NEO6M_OK)
         {
-            status = ((NEO6M_ParseGPVTG(buffer, (GPVTG_Info_t*)pGPS_Neo6M) == PARSE_SUCC) ? NEO6M_OK : NEO6M_NOK);
+            status = ((NEO6M_ParseGPVTG((GPVTG_Info_t*)pGPS_Neo6M) == PARSE_SUCC) ? NEO6M_OK : NEO6M_NOK);
         }
-        else if (NEO6M_CheckHeaderMsg(buffer[0], "GPRMC") == NEO6M_OK)
+        else if (NEO6M_CheckHeaderMsg(NEO6M_GetDataByIndex(0), "GPRMC") == NEO6M_OK)
         {
-            status = ((NEO6M_ParseGPRMC(buffer, (GPRMC_Info_t*)pGPS_Neo6M) == PARSE_SUCC) ? NEO6M_OK : NEO6M_NOK);
+            status = ((NEO6M_ParseGPRMC((GPRMC_Info_t*)pGPS_Neo6M) == PARSE_SUCC) ? NEO6M_OK : NEO6M_NOK);
         }
         else
         {
             /* Do nothing */
         }
     }
+
+    /* Clean list */
+    NEO6M_FreeList();
 
     return status;
 }
