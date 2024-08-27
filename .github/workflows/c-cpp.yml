@@ -11,7 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - name: Setup environment
+      run: sudo apt update && sudo apt install -y valgrind
     - name: Build test cases
       run: make build
     - name: Run test cases
       run: make check
+    - name: Check memory leak
+      run: make memcheck

@@ -49,12 +49,13 @@ OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(CPP_SOURCES:.cpp=.o)))
 vpath %.cpp $(sort $(dir $(CPP_SOURCES)))
 
 # Default action: all 
-.PHONY: all build clean
+.PHONY: all build clean check memcheck
 
 all:
 	@make clean -s -i
 	@make build --no-print-directory
 	@make check --no-print-directory
+	@make memcheck --no-print-directory
 
 build: $(BUILD_DIR)/$(TARGET)
 
@@ -70,6 +71,13 @@ $(BUILD_DIR)/$(TARGET): $(OBJECTS)
 
 check:
 	./$(BUILD_DIR)/$(TARGET) --gtest_color=yes
+
+memcheck:
+	valgrind	--leak-check=full \
+				--show-leak-kinds=all \
+				--track-origins=yes \
+				--verbose \
+				build/test > /dev/null
 
 clean: 
 	@$(RMDIR) $(BUILD_DIR)
